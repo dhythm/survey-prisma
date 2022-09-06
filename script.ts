@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
-  log: ["query"],
+  log: ["query", "info", "warn", "error"],
 });
 
 async function main() {
-  const createMany = await prisma.user.createMany({
+  await prisma.user.createMany({
     data: names.map((name) => ({
       name,
       email: name.toLowerCase() + "@prisma.io",
@@ -13,17 +13,35 @@ async function main() {
     skipDuplicates: true,
   });
 
-  console.log({ createMany });
-  //   await prisma.$transaction(
-  //     createMany.map((user) =>
-  //       prisma.user.update({
-  //         where: { id: user.id },
-  //         data: {
-  //           name: user.name + "_new",
-  //         },
-  //       })
-  //     )
-  //   );
+  const users = await prisma.user.findMany();
+  const usersNext = users
+    .map((user) => ({
+      id: user.id,
+      name: user.name + "_new",
+    }))
+    .concat([
+      {
+        id: users[0].id,
+        name: users[0].name + "_next",
+      },
+      {
+        id: users[10].id,
+        name: users[10].name + "_next",
+      },
+    ]);
+
+  await prisma.$transaction(
+    usersNext.map((user) => {
+      return prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: user.name,
+        },
+      });
+    })
+  );
+
+  console.log(await prisma.user.findMany());
 }
 
 const names = [
