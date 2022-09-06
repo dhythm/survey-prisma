@@ -2,18 +2,19 @@
 
 set -e
 
-name=test_db
-export DATABASE_URL=postgresql://epdashboarduser:epdashboardpass@127.0.0.1:5433/epdashboarddb_test
+name=prismadb
+export DATABASE_URL=postgresql://prismauser:prismapass@127.0.0.1:5555/prismadb
 
 set -x
 
-docker run -d \
-    --name $name \
-    -p 5433:5432 \
-    -e POSTGRES_USER=epdashboarduser \
-    -e POSTGRES_PASSWORD=epdashboardpass \
-    -e POSTGRES_DB=epdashboarddb_test \
-    postgres:13.4
+# docker run -d \
+#     --name $name \
+#     -p 5555:5432 \
+#     -e POSTGRES_USER=prismauser \
+#     -e POSTGRES_PASSWORD=prismapass \
+#     -e POSTGRES_DB=prismadb \
+#     postgres:13.4
+docker-compose run -p 5555:5432 --name $name -d postgres
 
 sleep 5
 npx prisma migrate dev --name init
